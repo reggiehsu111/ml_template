@@ -225,3 +225,50 @@ class Visualizer():
         print(message)  # print the message
         with open(self.log_name, "a") as log_file:
             log_file.write('%s\n' % message)  # save the message
+
+    def plot_eval_metrics(self, epoch, losses):
+        """display the current losses on visdom display: dictionary of error labels and values
+
+        Parameters:
+            epoch (int)           -- current epoch
+            losses (OrderedDict)  -- evaluating losses stored in the format of (name, float) pairs
+        """
+        if not hasattr(self, 'plot_eval'):
+            self.plot_eval = {'X': [], 'Y': {}, 'legend': list(losses.keys())}
+            self.plot_eval['Y'] = dict.fromkeys(self.plot_eval['legend'], np.array([None]))
+        self.plot_eval['X'].append(epoch)
+        X = np.stack([np.array(self.plot_eval['X'])] * len(losses[self.plot_eval['legend'][0]].tolist()), 1)
+        try:
+            self.display_id = 0
+            for key in self.plot_eval['legend']:
+                if self.plot_eval['Y'][key].all() == None:
+                    self.plot_eval['Y'][key] = losses[key]
+                else:
+                    self.plot_eval['Y'][key] = np.append(self.plot_eval['Y'][key], losses[key])
+                self.vis.line(
+                    X=X,
+                    Y=self.plot_eval['Y'][key].reshape(X.shape),
+                    opts={
+                        'title': self.name + ' eval metrics ' + key,
+                        'legend': [key + "_" + str(x) for x in range(len(losses[key].tolist()))],
+                        'xlabel': 'epoch',
+                        'ylabel': 'metrics'},
+                    win=self.display_id)
+                self.display_id += 1
+        except VisdomExceptionBase:
+            self.create_visdom_connections()
+
+    def print_eval_metrics(self, epoch, losses):
+        """print current losses on console; also save the losses to the disk
+
+        Parameters:
+            epoch (int) -- current epoch
+            losses (OrderedDict) -- evaluating losses stored in the format of (name, float) pairs
+        """
+        message = '(epoch: %d) ' % (epoch)
+        for k, v in losses.items():
+            message += '%s: %.3f ' % (k, v)
+
+        print(message)  # print the message
+        with open(self.log_name+"_eval", "a") as log_file:
+            log_file.write('%s\n' % message)  # save the message

@@ -9,9 +9,9 @@ class TrainOptions(BaseOptions):
         parser = self.parser
         parser.add_argument('--test-arg', type=int, default=1, help='argument for testing')
         parser.add_argument('--direction', type=str, default='AtoB', help='AtoB or BtoA')
-        parser.add_argument('--train-val-test', type=list, default=[0.001, 0.998, 0.001], help='Division of dataset for training, validating and testing')
-        parser.add_argument('--isTrain', type=bool, default=True, help='True when is training')
-        parser.add_argument('--niter', type=int, default=1, help='# of iter at starting learning rate')
+        parser.add_argument('--train-val-test', type=list, default=[0.9998, 0.0001, 0.0001], help='Division of dataset for training, validating and testing')
+        parser.add_argument('--isTrain', type=bool, default=False, help='True when is training')
+        parser.add_argument('--niter', type=int, default=2, help='# of iter at starting learning rate')
         parser.add_argument('--niter_decay', type=int, default=0, help='# of iter to linearly decay learning rate to zero')
         parser.add_argument('--epoch_count', type=int, default=1, help='the starting epoch count, we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>, ...')
 
@@ -33,15 +33,22 @@ class TrainOptions(BaseOptions):
         parser.add_argument('--display_env', type=str, default='main', help='visdom display environment name (default is "main")')
         parser.add_argument('--display_port', type=int, default=8097, help='visdom port of the web display')
         parser.add_argument('--update_html_freq', type=int, default=1000, help='frequency of saving training results to html')
-        parser.add_argument('--print_freq', type=int, default=1, help='frequency of showing training results on console')
+        parser.add_argument('--print_freq', type=int, default=100, help='frequency of showing training results on console')
         parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.args.checkpoints_dir]/[opt.args.name]/web/')
         parser.add_argument('--display_winsize', type=int, default=256, help='display window size for both visdom and HTML')
         parser.add_argument('--azure_log', action='store_true', help='log metrics to Azure ML run')
         # network saving and loading parameters
-        parser.add_argument('--save_latest_freq', type=int, default=1, help='frequency of saving the latest results')
+        parser.add_argument('--save_latest_freq', type=int, default=10, help='frequency of saving the latest results')
         parser.add_argument('--save_epoch_freq', type=int, default=5, help='frequency of saving checkpoints at the end of epochs')
         parser.add_argument('--save_by_iter', action='store_true', help='whether saves model by iteration')
         parser.add_argument('--has_visuals', action='store_true', help='whether model has visuals to visualize')
+
+        '''
+        arguments for evaluating
+        '''
+        parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
+        parser.add_argument("--conf_thres", type=float, default=0.8, help="object confidence threshold")
+        parser.add_argument("--nms_thres", type=float, default=0.5, help="iou threshold for non-maximum")
 
         self.args = parser.parse_args()
         self.parser = parser  

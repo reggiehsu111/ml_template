@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from terminaltables import AsciiTable
 import torch
 import time
+from .yolo_evaluate import evaluater
 
 class Trainer():
     # initialize trainer with args
@@ -11,6 +12,7 @@ class Trainer():
         self.model = model
         self.visualizer = visualizer
         self.opt = opt
+        self.evaluater = evaluater(self.model, self.opt)
         if self.opt.args.model == 'yolo':
             self.metrics = [
                 "grid_size",
@@ -108,6 +110,12 @@ class Trainer():
                     print(AsciiTable(metric_table).table)
 
                 iter_data_time = time.time()
+
+            # evaluate on validating and testing sets
+            self.validating_metrics = self.evaluater.evaluate(self.val_dataloader, 'val')
+            # self.testing_metrics = self.evaluater.evaluate(self.test_dataloader, 'test')
+            self.visualizer.plot_eval_metrics(epoch, self.validating_metrics)
+
             if epoch % self.opt.args.save_epoch_freq == 0:              # cache our model every <save_epoch_freq> epochs
                 print('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
                 self.model.save_networks('latest')

@@ -5,7 +5,7 @@ from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 from .yolo_networks import *
-from util.util import weights_init_normal
+from util.obj_detection_utils import weights_init_normal
 from .networks import *
 
 
@@ -26,6 +26,8 @@ class YOLOModel(BaseModel):
 
     def __init__(self, opt):
         BaseModel.__init__(self, opt)
+
+        self.phase = opt.args.phase
 
 
         # define losses to plot
@@ -50,22 +52,42 @@ class YOLOModel(BaseModel):
     def set_input(self, input):
         self.img_path = input[0]
         self.img = input[1].to(self.device)
-        self.targets = input[2].to(self.device)
+        if input[2] is not None:
+            self.targets = input[2].to(self.device)
+        else:
+            self.targets = None
 
 
     def forward(self):
-        self.loss, self.outputs, self.yolo_layer_metrics = self.netYolo(self.img, self.targets)
-        i = 0
-        for layer in self.yolo_layer_metrics:
-            for k in layer.keys():
-                loss_str = "loss_layer"+ str(i) + "_" + k
-                setattr(self, loss_str, layer[k])
-            i += 1
+        if self.targets is not None:
+            self.loss, self.outputs, self.yolo_layer_metrics = self.netYolo(self.img, self.targets)
+            i = 0
+            for layer in self.yolo_layer_metrics:
+                for k in layer.keys():
+                    loss_str = "loss_layer"+ str(i) + "_" + k
+                    setattr(self, loss_str, layer[k])
+                i += 1
+        else:
+            self.outputs = self.netYolo(self.img)
+        return self.outputs
 
-        
+    def test(self):
+        """Forward function used in test time.
+
+        This function wraps <forward> function in no_grad() so we don't save intermediate steps for backprop
+        It also calls <compute_visuals> to produce additional visualization results
+        """
+        with torch.no_grad():
+            self.forward()
+            self.compute_visuals()
+        return self.outputs
+
+    def load_darknet_weights(self,weights_path):
+        print("Load weights from: ", weights_path)
+        self.netYolo.load_darknet_weights(weights_path)
 
     def optimize_parameters(self):
-        self.forward()
+        outputs = self.forward()
         self.loss.backward()
 
 

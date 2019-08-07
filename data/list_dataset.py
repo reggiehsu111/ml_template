@@ -1,7 +1,7 @@
 from data.base_dataset import BaseDataset, get_transform
 import torchvision.transforms as transforms
 from util.augmentation import horizontal_flip
-from util.util import dict_zip
+from util.obj_detection_utils import dict_zip
 from PIL import Image
 import numpy as np
 import torch

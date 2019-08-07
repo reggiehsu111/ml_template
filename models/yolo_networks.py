@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import numpy as np
 
 from util.parse_config import *
-from util.util import build_targets, to_cpu
+from util.obj_detection_utils  import build_targets, to_cpu
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -180,7 +180,7 @@ class YOLOLayer(nn.Module):
 
 
         if targets is None:
-            return output, 0
+            return output, 0, None
         else:
             iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf = build_targets(
                 pred_boxes=pred_boxes,

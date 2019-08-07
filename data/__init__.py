@@ -55,7 +55,6 @@ def create_dataloader(opt):
 
     # custom random_split() from custom_split.py
     train_DataSet, val_DataSet, test_DataSet = random_split(dataset, [train_size, val_size, test_size], type(dataset), opt)
-    print("type of splitted datasets: ", type(train_DataSet))
 
     # Create dataloader for each phase
     train_dataloader = CustomDatasetDataLoader(opt,train_DataSet)
